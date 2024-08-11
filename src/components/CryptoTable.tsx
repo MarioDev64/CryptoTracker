@@ -9,8 +9,6 @@ interface CryptoData {
   '4. close': string;
 }
 
-const API_KEY = 'QREUM4AHM1R3S8BY';
-
 const CRYPTOS = [
   { symbol: 'BTC', name: 'Bitcoin' },
   { symbol: 'ETH', name: 'Ethereum' },
