@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Pagination from './Pagination';
+import Loading from './Loading';
 
 interface CryptoData {
   '1. open': string;
@@ -25,10 +26,15 @@ const CryptoTable: React.FC = () => {
   const [selectedCrypto, setSelectedCrypto] = useState<string>('BTC');
   const [cryptoData, setCryptoData] = useState<Record<string, CryptoData> | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const API_KEY = import.meta.env.VITE_API_KEY;
 
   const fetchData = async () => {
+    setLoading(true);
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     const functionType = timeframe === 'daily'
       ? 'DIGITAL_CURRENCY_DAILY'
       : timeframe === 'weekly'
@@ -41,6 +47,7 @@ const CryptoTable: React.FC = () => {
     const timeSeriesKey = `Time Series (Digital Currency ${timeframe.charAt(0).toUpperCase() + timeframe.slice(1)})`;
     setCryptoData(result.data[timeSeriesKey]);
     setCurrentPage(1);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -54,9 +61,9 @@ const CryptoTable: React.FC = () => {
     ? Object.keys(cryptoData).slice(startIndex, startIndex + recordsPerPage)
     : [];
 
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-    };
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handlePreviousPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -68,7 +75,7 @@ const CryptoTable: React.FC = () => {
 
   return (
     <div className="container mx-auto my-4">
-      <div className="flex flex-col md:flex-row justify-center items-center md:space-x-4 mb-4 ">
+      <div className="flex flex-col md:flex-row justify-center items-center md:space-x-4 mb-4">
         <div className="flex space-x-2 mb-4 md:mb-0">
           <button 
             onClick={() => setTimeframe('daily')} 
@@ -101,7 +108,6 @@ const CryptoTable: React.FC = () => {
           ))}
         </select>
       </div>
-
       <div className="overflow-x-auto">
         <table className="table-auto w-full text-sm text-left text-gray-500">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50">
@@ -115,16 +121,25 @@ const CryptoTable: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {cryptoData && paginatedData.map((date, idx) => (
-              <tr key={idx} className="bg-white border-b">
-                <td className="px-6 py-4">{selectedCrypto}</td>
-                <td className="px-6 py-4">{date}</td>
-                <td className="px-6 py-4">{parseFloat(cryptoData[date]['1. open']).toFixed(2)}</td>
-                <td className="px-6 py-4">{parseFloat(cryptoData[date]['2. high']).toFixed(2)}</td>
-                <td className="px-6 py-4">{parseFloat(cryptoData[date]['3. low']).toFixed(2)}</td>
-                <td className="px-6 py-4">{parseFloat(cryptoData[date]['4. close']).toFixed(2)}</td>
-              </tr>
-            ))}
+            {loading && (
+                <tr>
+                  <td colSpan={6} className="relative h-64">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Loading />
+                    </div>
+                  </td>
+                </tr>
+              )}
+              {!loading && cryptoData && paginatedData.map((date, idx) => (
+                <tr key={idx} className="bg-white border-b">
+                  <td className="px-6 py-4">{selectedCrypto}</td>
+                  <td className="px-6 py-4">{date}</td>
+                  <td className="px-6 py-4">{parseFloat(cryptoData[date]['1. open']).toFixed(2)}</td>
+                  <td className="px-6 py-4">{parseFloat(cryptoData[date]['2. high']).toFixed(2)}</td>
+                  <td className="px-6 py-4">{parseFloat(cryptoData[date]['3. low']).toFixed(2)}</td>
+                  <td className="px-6 py-4">{parseFloat(cryptoData[date]['4. close']).toFixed(2)}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
